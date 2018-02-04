@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+
+    <link rel="stylesheet" type="text/css" href="main.css">
+
+    <script src="./node_modules/web3/dist/web3.min.js"></script>
+
+</head>
+<body>
+    <div class="container">
+
+        <h1>User Details </h1>
+
+
+        <label for="name" class="col-lg-2 control-label">User ID</label>
+		<input id="id" type="text">
+		
+		<label for="name" class="col-lg-2 control-label">User Name</label>
+		<input id="name" type="text">
+
+		<label for="name" class="col-lg-2 control-label">Address</label>
+		<input id="add" type="text">
+
+        <label for="name" class="col-lg-2 control-label"> Age</label>
+        <input id="age" type="text">
+
+		<button id="addUser">Add User</button>
+		
+        <label for="name" class="col-lg-2 control-label"> User ID</label>
+        <input id="searchID" type="text">
+
+		<button id="searchUser">Search User</button>
+
+		<h2 id="rst">Result</h2>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+
+    <script>
+		//web3 = require('web3');
+		if (typeof web3 !== 'undefined')
+		 {
+			web3 = new Web3(web3.currentProvider);
+		  } else
+		   {
+			web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+		  }
+
+        web3.eth.defaultAccount = web3.eth.accounts[0];
+
+       var contractAbi = web3.eth.contract([
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_address",
+				"type": "address"
+			}
+		],
+		"name": "getDetails",
+		"outputs": [
+			{
+				"name": "",
+				"type": "string"
+			},
+			{
+				"name": "",
+				"type": "string"
+			},
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_id",
+				"type": "address"
+			},
+			{
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"name": "add",
+				"type": "string"
+			},
+			{
+				"name": "dob",
+				"type": "uint256"
+			}
+		],
+		"name": "addNewUser",
+		"outputs": [
+			{
+				"name": "",
+				"type": "string"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+]);
+
+		var ContractAddress = contractAbi.at("0x54069708e6832539f4a12c554e2a030acd7bee3f");
+
+		console.log(ContractAddress);
+		searchAddress = $("#searchID").val();
+
+		/*ContractAddress.getDetails(searchAddress,{from:web3.eth.accounts[0]}, function(error,result)
+		{
+			if (!error)
+			{
+				$("#detais").html(result);
+				console.log(result);
+			}
+			else
+				console.error(error);
+		});*/
+
+		$("#searchUser").click(function() {
+            result =  ContractAddress.getDetails($("#searchID").val());
+			$("#rst").html('name :'+result[0]+' <br> Location :'+result[1]+'<br> Age :'+result[2]);
+			console.log(result)
+        });
+		
+		$("#addUser").click(function() 
+		{
+      ContractAddress.addNewUser($("#id").val(),$("#name").val(),$("#add").val(), $("#age").val(),{from: web3.eth.accounts[0], gas:3000000});
+		});
+    </script>
+
+</body>
+</html>
