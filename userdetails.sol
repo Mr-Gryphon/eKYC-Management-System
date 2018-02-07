@@ -3,37 +3,34 @@ pragma solidity ^0.4.17;
 contract userdetails
 {
      address owner;
-    struct userInfo
+    struct userInfo 
     {
-        address _ID;
-        string _name;
-        string _add;
-        uint _dob;
+        uint80 _id;
+        string _userHEX;
     }
+    event DataEvent(uint80 id,string data,bytes32 action);
 
     mapping(address=>userInfo) UserData;
 
-    function getDetails(address _address) public view returns(string,string,uint)
+    function getDetails(uint80 _searchID) public view returns(string _HEX)
     {
-        return (UserData[_address]._name,UserData[_address]._add,UserData[_address]._dob);
+        return (UserData[_searchID]._userHEX);
     }
 
 
-    function addNewUser(address _id,string name,string add,uint dob) public returns(string)
-    {
-        if(UserData[_id]._ID==_id)
+    function addNewUser(uint80 _newID,string _newUserHex) public {
+        if(UserData[_newID]._id==_newID)
         {
-           return "Customer already exist" ;
+             DataEvent(_newID,_newUserHex,"Customer already exist");
+
         }
         else
         {
             userInfo memory newUser;
-            newUser._ID=_id;
-            newUser._name=name;
-            newUser._add=add;
-            newUser._dob=dob;
-            UserData[_id]=newUser;
-            return "added to blockchain.";
+            newUser._id=_newID;
+            newUser._userHEX=_newUserHex;
+            UserData[_newID]=newUser;
+            DataEvent(_newID,_newUserHex,"address to blockchain.");
         }
     }
 }
