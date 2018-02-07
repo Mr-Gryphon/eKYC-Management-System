@@ -8,8 +8,8 @@
 
     <link rel="stylesheet" type="text/css" href="main.css">
 
-    <script src="./node_modules/web3/dist/web3.min.js"></script>
-
+	<script src="./node_modules/web3/web3.min.js"></script>
+	<script src="./node_modules/ipfs-mini/dist/ipfs-mini.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -43,39 +43,38 @@
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
 
     <script>
-		//web3 = require('web3');
+//--------------------------------------IPFS CONNECTION START-----------------------------------------------------------------
+		const ipfs = new IPFS({host: 'ipfs.infura.io', port: 5001, protocol: 'https'});
+
+//-----------------------------------------WEB3 PROVIDER-----------------------------------------------------------------------
 		if (typeof web3 !== 'undefined')
-		 {
+		{
 			web3 = new Web3(web3.currentProvider);
-		  } else
-		   {
-			web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
-		  }
+		}
+		else
+		{
+			console.log("no web3, using metamask");
+			web3 = new Web3(new Web3.providers.HttpProvider("https://localhost:8545"));
+		}	
 
-        web3.eth.defaultAccount = web3.eth.accounts[0];
+		web3.eth.defaultAccount = web3.eth.accounts[0];
+		
 
+//------------------------------------------Contract ABI START-----------------------------------------------------------------		
        var contractAbi = web3.eth.contract([
 	{
 		"constant": true,
 		"inputs": [
 			{
-				"name": "_address",
-				"type": "address"
+				"name": "_searchID",
+				"type": "uint80"
 			}
 		],
 		"name": "getDetails",
 		"outputs": [
 			{
-				"name": "",
+				"name": "_HEX",
 				"type": "string"
-			},
-			{
-				"name": "",
-				"type": "string"
-			},
-			{
-				"name": "",
-				"type": "uint256"
 			}
 		],
 		"payable": false,
@@ -83,65 +82,91 @@
 		"type": "function"
 	},
 	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"name": "id",
+				"type": "uint80"
+			},
+			{
+				"indexed": false,
+				"name": "data",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"name": "action",
+				"type": "bytes32"
+			}
+		],
+		"name": "DataEvent",
+		"type": "event"
+	},
+	{
 		"constant": false,
 		"inputs": [
 			{
-				"name": "_id",
-				"type": "address"
+				"name": "_newID",
+				"type": "uint80"
 			},
 			{
-				"name": "name",
+				"name": "_newUserHex",
 				"type": "string"
-			},
-			{
-				"name": "add",
-				"type": "string"
-			},
-			{
-				"name": "dob",
-				"type": "uint256"
 			}
 		],
 		"name": "addNewUser",
-		"outputs": [
-			{
-				"name": "",
-				"type": "string"
-			}
-		],
+		"outputs": [],
 		"payable": false,
 		"stateMutability": "nonpayable",
 		"type": "function"
 	}
 ]);
 
-		var ContractAddress = contractAbi.at("0x54069708e6832539f4a12c554e2a030acd7bee3f");
-
-		console.log(ContractAddress);
-		searchAddress = $("#searchID").val();
-
-		/*ContractAddress.getDetails(searchAddress,{from:web3.eth.accounts[0]}, function(error,result)
-		{
-			if (!error)
-			{
-				$("#detais").html(result);
-				console.log(result);
-			}
-			else
-				console.error(error);
-		});*/
-
-		$("#searchUser").click(function() {
-            result =  ContractAddress.getDetails($("#searchID").val());
-			$("#rst").html('name :'+result[0]+' <br> Location :'+result[1]+'<br> Age :'+result[2]);
-			console.log(result)
-        });
+//-----------------------------------------Contract ABI END--------------------------------------------------------------------
 		
+		var ContractAddress = contractAbi.at("0x8d03044dc2f368db811d26a26bb8385d9cc2ce62");
+		console.log(ContractAddress);
+		
+
+//------------------------------------------FIND USER----------------------------------------------------------------------------		
+		$("#searchUser").click(function() 
+		{
+			ContractAddress.getDetails($("#searchID").val(),function(err,rst)
+			{
+				console.log(err+ "=="+rst);
+				ipfs.cat(rst, (err, data) => 
+				{
+					if (err)
+					{
+   						return console.log(err);
+ 					}
+ 
+ 					console.log('DATA:', data);
+				});
+			});
+       });
+//-------------------------------------------------------------ADD NEW USER-------------------------------------------------------------------
 		$("#addUser").click(function() 
 		{
-      ContractAddress.addNewUser($("#id").val(),$("#name").val(),$("#add").val(), $("#age").val(),{from: web3.eth.accounts[0], gas:3000000});
+
+			const userDetails = ("ID: "+$("#id").val()+" Name :"+$("#name").val()+" Address : "+$("#add").val()+" Age : "+ $("#age").val());
+			ipfs.add(userDetails, (err, hash) => 
+			{
+				if (err) 
+				{
+   					return console.log(err);
+ 				}
+				console.log(userDetails +" "+hash);
+				
+				
+				ContractAddress.addNewUser($("#id").val(),hash,{from: web3.eth.accounts[0], gas:3000000},function(err,rst)
+				{
+					console.log(err+"=="+rst);
+				});
+			});
+			
 		});
     </script>
-
 </body>
 </html>
