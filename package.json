@@ -1,0 +1,25 @@
+{
+  "name": "learndapps",
+  "version": "1.0.0",
+  "description": "lerning1",
+  "main": "index.js",
+  "scripts": {
+    "dev": "lite-server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "www.github.com/Mr-Gryphon/learnDapps "
+  },
+  "author": "Nitesh Saxena",
+  "license": "ISC",
+  "dependencies": {
+    "http-server": "^0.11.1",
+    "ipfs": "^0.27.7",
+    "ipfs-api": "^17.5.0",
+    "ipfs-mini": "^1.1.2",
+    "web3": "^1.0.0-beta.29"
+  },
+  "devDependencies": {
+    "lite-server": "^2.3.0"
+  }
+}
